@@ -54,6 +54,11 @@ public class CSVRecordReader
 	.withColumn("RowNumber",functions.row_number().over(windowSpec)) 	
 	.show();
 	
+	String debugString = datsetTotal.toJavaRDD().toDebugString();
+	
+	logger.debug("Data Lineage :::: \n" );
+	logger.debug(debugString);
+	
 	
 	
 
