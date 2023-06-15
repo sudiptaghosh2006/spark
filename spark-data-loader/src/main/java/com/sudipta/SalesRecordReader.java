@@ -77,6 +77,8 @@ public class SalesRecordReader
 		
 		Dataset<Row> count = finalDataset.groupBy("Region","Item Type").count();
 		count.orderBy("Region").show((int)count.count(),false);
+		
+		logger.debug("row count {}",count.count());
 //		int count = (int)finalDataset.count();
 //		finalDataset.show(count,false);
 

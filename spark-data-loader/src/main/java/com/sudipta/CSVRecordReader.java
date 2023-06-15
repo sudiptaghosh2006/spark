@@ -2,6 +2,7 @@ package com.sudipta;
 
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;
+import org.apache.spark.api.java.function.FilterFunction;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
@@ -14,6 +15,8 @@ import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import scala.Function1;
 
 public class CSVRecordReader
 {
@@ -56,9 +59,10 @@ public class CSVRecordReader
 	    SparkSession sparkSession = new SparkSession(sparkContext.sc());
 	    Dataset<Row> dataset = sparkSession.read().schema(referenceSchema)
 //		    .option("columnNameOfCorruptRecord","badRecords")
-//		    .option("mode", "PERMISSIVE")
+		    .option("mode", "PERMISSIVE")
 //		    .option("mode", "DROPMALFORMED")
-		    .option("mode", "FAILFAST").option("header", true)
+//		    .option("mode", "FAILFAST")
+		    .option("header", true)
 //		    .option("inferSchema", true)
 		    .csv(args[0]);
 
@@ -68,6 +72,10 @@ public class CSVRecordReader
 
 	    try
 	    {
+		
+//		dataset.filter("Bengali eq 79").toDF().show();
+		dataset.filter(dataset.col("Bengali").equalTo(80)).toDF().show();		
+		
 		Dataset<Row> datsetTotal = dataset.withColumn("TOTAL",
 			dataset.col("Bengali").plus(dataset.col("English")).plus(dataset.col("History"))
 				.plus(dataset.col("Chemistry")).plus(dataset.col("Physics"))
@@ -101,7 +109,7 @@ public class CSVRecordReader
 	    logger.debug("exception details \n {}", e.getMessage());
 	}
 
-	Thread.sleep(100);
+	Thread.sleep(100000);
 	sparkContext.close();
     }
 
