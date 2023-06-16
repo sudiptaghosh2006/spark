@@ -66,6 +66,14 @@ public class CSVRecordReader
 
 //	dataset.show();
 	    dataset.printSchema();
+//	    dataset.select(functions.year(dataset.col("DOB"))).show();
+//	    dataset.select(functions.year(dataset.col("DOB"))).show();
+	    Dataset<Row> withColumn = dataset.withColumn("Year-of-birth",functions.year(dataset.col("DOB")));
+		    //.filter(("Year-of-birth"));
+	  
+	    withColumn.filter(withColumn.col("Year-of-birth").between(2011, 2015))
+	    .show();
+
 //	int size = dataset.numericColumns().knownSize();
 
 	    try
