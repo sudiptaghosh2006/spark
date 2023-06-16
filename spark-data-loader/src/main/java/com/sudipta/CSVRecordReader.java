@@ -2,7 +2,6 @@ package com.sudipta;
 
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.api.java.function.FilterFunction;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
@@ -15,8 +14,6 @@ import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import scala.Function1;
 
 public class CSVRecordReader
 {
@@ -43,6 +40,7 @@ public class CSVRecordReader
 
 	StructType referenceSchema = new StructType(
 		new StructField[] { new StructField("Student Name", DataTypes.StringType, false, Metadata.empty()),
+			new StructField("DOB", DataTypes.DateType, false, Metadata.empty()),
 			new StructField("Bengali", DataTypes.IntegerType, false, Metadata.empty()),
 			new StructField("English", DataTypes.IntegerType, false, Metadata.empty()),
 			new StructField("History", DataTypes.IntegerType, false, Metadata.empty()),
@@ -62,20 +60,18 @@ public class CSVRecordReader
 		    .option("mode", "PERMISSIVE")
 //		    .option("mode", "DROPMALFORMED")
 //		    .option("mode", "FAILFAST")
-		    .option("header", true)
+		    .option("header", true).option("dateFormat", "dd-MM-yyyy")
 //		    .option("inferSchema", true)
 		    .csv(args[0]);
 
 //	dataset.show();
-//	dataset.printSchema();
+	    dataset.printSchema();
 //	int size = dataset.numericColumns().knownSize();
 
 	    try
 	    {
-		
-//		dataset.filter("Bengali eq 79").toDF().show();
-		dataset.filter(dataset.col("Bengali").equalTo(80)).toDF().show();		
-		
+		dataset.filter(dataset.col("Bengali").equalTo(80)).toDF().show();
+
 		Dataset<Row> datsetTotal = dataset.withColumn("TOTAL",
 			dataset.col("Bengali").plus(dataset.col("English")).plus(dataset.col("History"))
 				.plus(dataset.col("Chemistry")).plus(dataset.col("Physics"))

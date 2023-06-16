@@ -33,38 +33,40 @@ public class SalesRecordReader
     {
 	int processors = Runtime.getRuntime().availableProcessors();
 	logger.debug("processor count  :::: {}", processors);
-	
+
 	logger.debug("File Name :::: {}", args[0]);
-	
+
 	Properties dbProps = new Properties();
 	dbProps.setProperty("connectionURL", jdbcUrl);
 	dbProps.setProperty("driver", jdbcDriver);
 	dbProps.setProperty("user", user);
 	dbProps.setProperty("password", password);
-	
-	
+
 	if (args.length < 1)
 	{
 	    logger.error("Usage: SalesRecordReader <file>");
 	    System.exit(1);
 	}
-	
+
 	SparkConf sparkConf = new SparkConf().setAppName("SalesRecordReader").setMaster("local[3]");
-	
+
 	try (JavaSparkContext sparkContext = new JavaSparkContext(sparkConf))
 	{
 	    logger.debug("Spark Home ::::   {} ", sparkContext.getSparkHome().get());
 
 	    try (SparkSession sparkSession = new SparkSession(sparkContext.sc()))
 	    {
-		Dataset<Row> dataset = sparkSession.read().option("header", true).option("inferSchema", true)
+
+		Dataset<Row> dataset = sparkSession.read()
+			.option("header", true)
+			.option("inferSchema", true)
+			.option("dateFormat","MM/dd/yyyy")
 			.csv(args[0]);
-		
+
 		List<Partition> partitions = dataset.toJavaRDD().partitions();
-		 logger.debug("RDD partition Count ::::   {} ", partitions.size());
-		
+		logger.debug("RDD partition Count ::::   {} ", partitions.size());
+
 		dataset.printSchema();
-		
 
 		int numericColumnCount = dataset.numericColumns().knownSize();
 		logger.debug("Numeric Column  count :::: {} ", numericColumnCount);
@@ -72,17 +74,16 @@ public class SalesRecordReader
 		long rowCount = dataset.count();
 		logger.debug("Row  count :::: {} ", rowCount);
 		Dataset<Row> finalDataset = dataset.withColumn("INSERTED_ON", functions.current_timestamp());
-		
+
 //		finalDataset.groupBy("Country").df().show();
-		
-		Dataset<Row> count = finalDataset.groupBy("Region","Item Type").count();
-		count.orderBy("Region").show((int)count.count(),false);
-		
-		logger.debug("row count {}",count.count());
+
+		Dataset<Row> count = finalDataset.groupBy("Region", "Item Type").count();
+		count.orderBy("Region").show((int) count.count(), false);
+
+		logger.debug("row count {}", count.count());
 //		int count = (int)finalDataset.count();
 //		finalDataset.show(count,false);
 
-		
 		/*
 		 * StopWatch watch = new StopWatch(); watch.start();
 		 * 
@@ -94,6 +95,23 @@ public class SalesRecordReader
 		 */
 
 //		Thread.sleep(1000000);
+		
+		
+//		finalDataset.select(functions.year("Order Date"))
+		
+		Dataset<Row> select = finalDataset.select(functions.year(finalDataset.col("Order Date")).alias("year")
+//			, 
+//			month(elevDF.date).alias('dt_month'), 
+//			dayofmonth(elevDF.date).alias('dt_day'), 
+//			dayofyear(elevDF.date).alias('dt_dayofy'), 
+//			hour(elevDF.date).alias('dt_hour'), 
+//			minute(elevDF.date).alias('dt_min'), 
+//			weekofyear(elevDF.date).alias('dt_week_no'), 
+//			unix_timestamp(elevDF.date).alias('dt_int')
+			);
+
+		select.show();
+		
 		sparkContext.close();
 	    }
 	}
