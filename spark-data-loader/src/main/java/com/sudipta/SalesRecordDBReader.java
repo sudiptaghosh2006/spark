@@ -36,7 +36,7 @@ public class SalesRecordDBReader
 	executeJob(args);
     }
 
-    private static void executeJob(String[] args)
+    private static void executeJob(String[] args) throws InterruptedException
     {
 
 	int processors = Runtime.getRuntime().availableProcessors();
@@ -65,10 +65,10 @@ public class SalesRecordDBReader
 
 		logger.debug("data will be retrieved from db {} ",dbProps); //
 		Dataset<Row> dataset = sparkSession.read()
-			.option("numPartitions",5)
-			.option("numPartitions", 8)
+			.option("numPartitions",2)
+//			.option("numPartitions", 8)
 			.option("partitionColumn", "Order ID")
-			.option("lowerBound", 1).option("upperBound", 100)
+			.option("lowerBound", 1).option("upperBound", 10000)
 //			.jdbc(jdbcUrl, sourceTable, dbProps);
 			.jdbc(jdbcUrl, sourceTableQuery, dbProps);
 		
@@ -97,8 +97,6 @@ public class SalesRecordDBReader
 		
 		watch.stop();
 		logger.debug(" time taken  ==> {} (ms) ", watch.getTime());
-		
-
 		sparkContext.close();
 	    }
 	}
