@@ -17,10 +17,10 @@ import org.slf4j.LoggerFactory;
 
 import scala.collection.immutable.Seq;
 
-public class SalesRecordReader
+public class SalesRecordCSVReader
 {
 
-    private static Logger logger = LoggerFactory.getLogger(SalesRecordReader.class);
+    private static Logger logger = LoggerFactory.getLogger(SalesRecordCSVReader.class);
 
     private static String destinationTable = "dbo.SPARK_SALES_RECORD";
     private static String user = "user";
@@ -31,6 +31,12 @@ public class SalesRecordReader
 
     public static void main(String[] args) throws Exception
     {
+	executeJob(args);
+    }
+    
+    private static void executeJob (String[] args)
+    {
+
 	int processors = Runtime.getRuntime().availableProcessors();
 	logger.debug("processor count  :::: {}", processors);
 
@@ -99,7 +105,7 @@ public class SalesRecordReader
 		
 //		finalDataset.select(functions.year("Order Date"))
 		
-		Dataset<Row> select = finalDataset.select(functions.year(finalDataset.col("Order Date")).alias("year")
+//		Dataset<Row> select = finalDataset.select(functions.year(finalDataset.col("Order Date")).alias("year")
 //			, 
 //			month(elevDF.date).alias('dt_month'), 
 //			dayofmonth(elevDF.date).alias('dt_day'), 
@@ -108,13 +114,14 @@ public class SalesRecordReader
 //			minute(elevDF.date).alias('dt_min'), 
 //			weekofyear(elevDF.date).alias('dt_week_no'), 
 //			unix_timestamp(elevDF.date).alias('dt_int')
-			);
+//			);
 
-		select.show();
+//		select.show();
 		
 		sparkContext.close();
 	    }
 	}
+    
     }
 
 }
