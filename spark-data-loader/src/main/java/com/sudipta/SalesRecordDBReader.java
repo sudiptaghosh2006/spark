@@ -31,10 +31,10 @@ public class SalesRecordDBReader
     private static String jdbcUrl = "jdbc:sqlserver://localhost:1433;databaseName=DemoDatabase;encrypt=false";
     private static String jdbcDriver = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
 
-    public static void main(String[] args) throws Exception
-    {
-	executeJob(args);
-    }
+//    public static void main(String[] args) throws Exception
+//    {
+//	executeJob(args);
+//    }
 
     private static void executeJob(String[] args) throws InterruptedException
     {

@@ -39,7 +39,9 @@ public class CSVRecordReader
 	logger.debug("Spark Home ::::    " + sparkContext.getSparkHome().get());
 
 	StructType referenceSchema = new StructType(
-		new StructField[] { new StructField("Student Name", DataTypes.StringType, false, Metadata.empty()),
+		new StructField[] { 
+			new StructField("RegID", DataTypes.IntegerType, false, Metadata.empty()),
+			new StructField("Student Name", DataTypes.StringType, false, Metadata.empty()),
 			new StructField("DOB", DataTypes.DateType, false, Metadata.empty()),
 			new StructField("Bengali", DataTypes.IntegerType, false, Metadata.empty()),
 			new StructField("English", DataTypes.IntegerType, false, Metadata.empty()),

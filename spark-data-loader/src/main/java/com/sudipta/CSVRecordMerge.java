@@ -5,9 +5,6 @@ import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
-import org.apache.spark.sql.functions;
-import org.apache.spark.sql.expressions.Window;
-import org.apache.spark.sql.expressions.WindowSpec;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.Metadata;
 import org.apache.spark.sql.types.StructField;
@@ -28,7 +25,9 @@ public class CSVRecordMerge
     private static void executeJob(String[] args) throws InterruptedException
     {
 
-	SparkConf sparkConf = new SparkConf().setAppName("CSVRecordMerge").setMaster("local[2]");
+	SparkConf sparkConf = new SparkConf().setAppName("CSVRecordMerge")
+//		.setMaster("spark://10.48.249.226:7077");
+		.setMaster("local[2]");
 	JavaSparkContext sparkContext = new JavaSparkContext(sparkConf);
 	logger.debug("Spark Home ::::    " + sparkContext.getSparkHome().get());
 
@@ -76,9 +75,16 @@ public class CSVRecordMerge
 
 	    phoneNumberDataset.show(); 
 	    Dataset<Row> mergedDataset = masterDataset
-		    .join(phoneNumberDataset, masterDataset.col("RegID").equalTo(phoneNumberDataset.col("RegID")),"left");
-//	    ligands.col("InChIKey").equalTo(drugBank.col("StandardInChIKey")
+//		    .join(phoneNumberDataset, masterDataset.col("RegID").equalTo(phoneNumberDataset.col("RegID")),"left");
+//	    	    .join(phoneNumberDataset, masterDataset.col("RegID").equalTo(phoneNumberDataset.col("RegID")),"right");
+	    	    .join(phoneNumberDataset, masterDataset.col("RegID").equalTo(phoneNumberDataset.col("RegID")),"inner");
+//	    	    .join(phoneNumberDataset, masterDataset.col("RegID").equalTo(phoneNumberDataset.col("RegID")),"full");
+	    
 	    mergedDataset.show();
+	    
+	  
+
+	   
 
 
 	    }
@@ -89,7 +95,7 @@ public class CSVRecordMerge
 
 
 
-	Thread.sleep(100000);
+	Thread.sleep(100);
 	sparkContext.close();
     }
 
