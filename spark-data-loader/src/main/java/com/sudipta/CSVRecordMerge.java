@@ -17,10 +17,10 @@ public class CSVRecordMerge
 
     private static Logger logger = LoggerFactory.getLogger(CSVRecordMerge.class);
 
-    public static void main(String[] args) throws Exception
-    {
-	executeJob(args);
-    }
+//    public static void main(String[] args) throws Exception
+//    {
+//	executeJob(args);
+//    }
 
     private static void executeJob(String[] args) throws InterruptedException
     {

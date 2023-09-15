@@ -20,11 +20,26 @@
 		</dependency>
 
 		<!-- https://mvnrepository.com/artifact/org.apache.spark/spark-core -->
+		<!--<dependency>
+			<groupId>org.apache.spark</groupId>
+			<artifactId>spark-core_2.13</artifactId>
+			<version>3.4.0</version>
+		</dependency>-->
+
+		<!-- https://mvnrepository.com/artifact/org.apache.spark/spark-core -->
 		<dependency>
 			<groupId>org.apache.spark</groupId>
 			<artifactId>spark-core_2.13</artifactId>
 			<version>3.4.0</version>
 		</dependency>
+
+
+		<!-- https://mvnrepository.com/artifact/org.apache.spark/spark-sql -->
+		<!--<dependency>
+			<groupId>org.apache.spark</groupId>
+			<artifactId>spark-sql_2.13</artifactId>
+			<version>3.4.0</version>
+		</dependency>-->
 
 		<!-- https://mvnrepository.com/artifact/org.apache.spark/spark-sql -->
 		<dependency>

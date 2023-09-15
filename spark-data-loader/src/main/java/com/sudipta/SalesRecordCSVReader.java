@@ -74,6 +74,7 @@ public class SalesRecordCSVReader
     {
 
 	int processors = Runtime.getRuntime().availableProcessors();
+	logger.debug("Hadoop Home :::: {}",System.getenv("HADOOP_HOME"));
 	logger.debug("processor count  :::: {}", processors);
 
 	logger.debug("File Name :::: {}", args[0]);
@@ -153,7 +154,8 @@ public class SalesRecordCSVReader
 		watch.start();
 
 		logger.debug("data will be saved in db  :::: {} ", rowCount); //
-		finalDataset.write().mode(SaveMode.Overwrite).jdbc(jdbcUrl, destinationTable, dbProps);
+//		finalDataset.write().mode(SaveMode.Overwrite).jdbc(jdbcUrl, destinationTable, dbProps);
+		finalDataset.write().option("header", true).mode(SaveMode.Overwrite).csv("C:\\Users\\SGHOSH43\\Desktop\\SparkData\\OUTPUT\\csv\\aa.csv");
 		watch.stop();
 		long result = watch.getTime();
 		logger.debug("Time taken  in ms  {}", result);
