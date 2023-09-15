@@ -80,13 +80,7 @@ public class CSVRecordMerge
 	    	    .join(phoneNumberDataset, masterDataset.col("RegID").equalTo(phoneNumberDataset.col("RegID")),"inner");
 //	    	    .join(phoneNumberDataset, masterDataset.col("RegID").equalTo(phoneNumberDataset.col("RegID")),"full");
 	    
-	    mergedDataset.show();
-	    
-	  
-
-	   
-
-
+	    mergedDataset.show((int) mergedDataset.count());
 	    }
 	    catch (Exception e)
 	    {

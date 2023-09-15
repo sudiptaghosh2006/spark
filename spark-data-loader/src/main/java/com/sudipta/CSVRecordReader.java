@@ -20,10 +20,10 @@ public class CSVRecordReader
 
     private static Logger logger = LoggerFactory.getLogger(CSVRecordReader.class);
 
-    public static void main(String[] args) throws Exception
-    {
-	executeJob(args);
-    }
+//    public static void main(String[] args) throws Exception
+//    {
+//	executeJob(args);
+//    }
 
     private static void executeJob(String[] args) throws InterruptedException
     {
@@ -37,6 +37,7 @@ public class CSVRecordReader
 	SparkConf sparkConf = new SparkConf().setAppName("CSVRecordReader").setMaster("local[2]");
 	JavaSparkContext sparkContext = new JavaSparkContext(sparkConf);
 	logger.debug("Spark Home ::::    " + sparkContext.getSparkHome().get());
+	
 
 	StructType referenceSchema = new StructType(
 		new StructField[] { 
@@ -83,16 +84,26 @@ public class CSVRecordReader
 		dataset.filter(dataset.col("Bengali").equalTo(80)).toDF().show();
 
 		Dataset<Row> datsetTotal = dataset.withColumn("TOTAL",
-			dataset.col("Bengali").plus(dataset.col("English")).plus(dataset.col("History"))
+				dataset.col("Bengali").plus(dataset.col("English")).plus(dataset.col("History"))
 				.plus(dataset.col("Chemistry")).plus(dataset.col("Physics"))
 				.plus(dataset.col("Maths")));
+		
+		
 
 //	datsetTotal.withColumn("Percent", functions.round(datsetTotal.col("TOTAL").$div(size), 2)).show();
 
 		WindowSpec windowSpec = Window.orderBy(datsetTotal.col("TOTAL").desc());
 		datsetTotal.withColumn("DenseRank", functions.dense_rank().over(windowSpec))
 			.withColumn("Rank", functions.rank().over(windowSpec))
-			.withColumn("RowNumber", functions.row_number().over(windowSpec)).show();
+			.withColumn("RowNumber", functions.row_number().over(windowSpec))
+			.show();
+		
+		datsetTotal.select(( functions.dense_rank().over(windowSpec)).alias("DenseRank")
+		,( functions.rank().over(windowSpec).alias("Rank"))
+		,( functions.row_number().over(windowSpec).alias("Row Number")))
+		.show();
+		
+		
 
 		String debugString = datsetTotal.toJavaRDD().toDebugString();
 		logger.debug("Data Lineage :::: \n");
@@ -115,7 +126,7 @@ public class CSVRecordReader
 	    logger.debug("exception details \n {}", e.getMessage());
 	}
 
-	Thread.sleep(100000);
+	Thread.sleep(100);
 	sparkContext.close();
     }
 
