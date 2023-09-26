@@ -1,9 +1,16 @@
 package com.sudipta;
 
+import java.io.IOException;
+import java.net.URI;
+
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Properties;
 
 import org.apache.commons.lang3.time.StopWatch;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 import org.apache.spark.Partition;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;
@@ -70,11 +77,11 @@ public class SalesRecordCSVReader
 	executeJob(args);
     }
 
-    private static void executeJob(String[] args)
+    private static void executeJob(String[] args) throws IOException
     {
 
 	int processors = Runtime.getRuntime().availableProcessors();
-	logger.debug("Hadoop Home :::: {}",System.getenv("HADOOP_HOME"));
+	logger.debug("Hadoop Home :::: {}", System.getenv("HADOOP_HOME"));
 	logger.debug("processor count  :::: {}", processors);
 
 	logger.debug("File Name :::: {}", args[0]);
@@ -110,11 +117,16 @@ public class SalesRecordCSVReader
 //			new StructField("_corrupt_record", DataTypes.StringType, false, Metadata.empty())
 
 		});
-	SparkConf sparkConf = new SparkConf().setAppName("SalesRecordReader").setMaster("local[3]");
+	SparkConf sparkConf = new SparkConf().setAppName("SalesRecordReader").setMaster("local[8]");
+	sparkConf.set("mapreduce.fileoutputcommitter.marksuccessfuljobs", "false");
 
 	try (JavaSparkContext sparkContext = new JavaSparkContext(sparkConf))
 	{
 	    logger.debug("Spark Home ::::   {} ", sparkContext.getSparkHome().get());
+	    Configuration configuration = sparkContext.hadoopConfiguration();
+	    FileSystem fileSystem = FileSystem.get(configuration);
+	    fileSystem.setWriteChecksum(false);
+
 
 	    try (SparkSession sparkSession = new SparkSession(sparkContext.sc()))
 	    {
@@ -125,6 +137,8 @@ public class SalesRecordCSVReader
 		Dataset<Row> dataset = sparkSession.read().schema(referenceSchema).option("header", true)
 //			.option("inferSchema", true)
 			.option("dateFormat", "MM/dd/yyyy").option("dateFormat", "M/d/yyyy").csv(args[0]);
+
+//		dataset.schema().fields().
 
 		List<Partition> partitions = dataset.toJavaRDD().partitions();
 		logger.debug("RDD partition Count ::::   {} ", partitions.size());
@@ -153,9 +167,21 @@ public class SalesRecordCSVReader
 		StopWatch watch = new StopWatch();
 		watch.start();
 
-		logger.debug("data will be saved in db  :::: {} ", rowCount); //
+//		logger.debug("data will be saved in db  :::: {} ", rowCount); //
 //		finalDataset.write().mode(SaveMode.Overwrite).jdbc(jdbcUrl, destinationTable, dbProps);
-		finalDataset.write().option("header", true).mode(SaveMode.Overwrite).csv("C:\\Users\\SGHOSH43\\Desktop\\SparkData\\OUTPUT\\csv\\aa.csv");
+//		
+		finalDataset = finalDataset.coalesce(1);
+
+		logger.debug("data will be saved in file  :::: {} ", rowCount); //
+		finalDataset.write().mode(SaveMode.Overwrite)
+//		.option("header", true)
+		.csv("C:\\Users\\SGHOSH43\\Desktop\\SparkData\\OUTPUT\\csv\\");
+//		.parquet("C:\\Users\\SGHOSH43\\Desktop\\SparkData\\OUTPUT\\parquet\\");
+//			.json("C:\\Users\\SGHOSH43\\Desktop\\SparkData\\OUTPUT\\json\\");
+
+//		finalDataset.write().mode(SaveMode.Overwrite).
+//		format("avro").save("C:\\Users\\SGHOSH43\\Desktop\\SparkData\\OUTPUT\\avro\\namesAndFavColors.avro");
+
 		watch.stop();
 		long result = watch.getTime();
 		logger.debug("Time taken  in ms  {}", result);
@@ -178,7 +204,14 @@ public class SalesRecordCSVReader
 
 //		select.show();
 
-		sparkContext.close();
+		Path homeDirectory = fileSystem.getHomeDirectory();		  
+		logger.debug("Home Directory   :::: {} ", homeDirectory);
+		Path pathSrc = new Path(args[0]);
+		Path pathDest = new Path("C:\\Users\\SGHOSH43\\Desktop\\SparkData\\OUTPUT\\");
+
+		fileSystem.copyToLocalFile(pathSrc, pathDest);
+
+		sparkContext.close(); // can not call this when deployed in cluster
 	    }
 	}
 
