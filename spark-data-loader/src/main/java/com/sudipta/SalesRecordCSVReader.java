@@ -1,5 +1,6 @@
 package com.sudipta;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 
@@ -7,6 +8,12 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Properties;
 
+import org.apache.commons.configuration2.FileBasedConfiguration;
+import org.apache.commons.configuration2.PropertiesConfiguration;
+import org.apache.commons.configuration2.builder.FileBasedConfigurationBuilder;
+import org.apache.commons.configuration2.builder.fluent.Parameters;
+import org.apache.commons.configuration2.convert.DefaultListDelimiterHandler;
+import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
@@ -79,12 +86,39 @@ public class SalesRecordCSVReader
 
     private static void executeJob(String[] args) throws IOException
     {
+	PropertiesConfiguration config =null;
+	
 
+	
+	Parameters params = new Parameters();
+	// Read data from this file
+	File propertiesFile = new File("sales-reader-configuration.properties");
+
+	FileBasedConfigurationBuilder<FileBasedConfiguration> builder =
+	    new FileBasedConfigurationBuilder<FileBasedConfiguration>(PropertiesConfiguration.class)
+	    .configure(params.fileBased()
+	        .setFile(propertiesFile));
+	try
+	{
+	    config = (PropertiesConfiguration) builder.getConfiguration();
+	    // config contains all properties read from the file
+	}
+	catch(ConfigurationException cex)
+	{
+	    // loading of the configuration file failed
+	    cex.printStackTrace();
+	}
+
+	String fileLocation = config.getString("input-file-location");
+	String fileName = config.getString("input-file-name");
+	String inputFile = Paths.get(fileLocation, fileName).toString();
+	
+	
 	int processors = Runtime.getRuntime().availableProcessors();
 	logger.debug("Hadoop Home :::: {}", System.getenv("HADOOP_HOME"));
 	logger.debug("processor count  :::: {}", processors);
 
-	logger.debug("File Name :::: {}", args[0]);
+	logger.debug("File Name :::: {}", inputFile);
 
 	Properties dbProps = new Properties();
 	dbProps.setProperty("connectionURL", jdbcUrl);
@@ -175,9 +209,9 @@ public class SalesRecordCSVReader
 		logger.debug("data will be saved in file  :::: {} ", rowCount); //
 		finalDataset.write().mode(SaveMode.Overwrite)
 //		.option("header", true)
-		.csv("C:\\Users\\SGHOSH43\\Desktop\\SparkData\\OUTPUT\\csv\\");
-//		.parquet("C:\\Users\\SGHOSH43\\Desktop\\SparkData\\OUTPUT\\parquet\\");
-//			.json("C:\\Users\\SGHOSH43\\Desktop\\SparkData\\OUTPUT\\json\\");
+		.csv(config.getString("output-file-location-csv"));
+//		.parquet(config.getString("output-file-location-parquet"));
+//		.json(config.getString("output-file-location-json"));
 
 //		finalDataset.write().mode(SaveMode.Overwrite).
 //		format("avro").save("C:\\Users\\SGHOSH43\\Desktop\\SparkData\\OUTPUT\\avro\\namesAndFavColors.avro");
@@ -206,10 +240,17 @@ public class SalesRecordCSVReader
 
 		Path homeDirectory = fileSystem.getHomeDirectory();		  
 		logger.debug("Home Directory   :::: {} ", homeDirectory);
-		Path pathSrc = new Path(args[0]);
-		Path pathDest = new Path("C:\\Users\\SGHOSH43\\Desktop\\SparkData\\OUTPUT\\");
+		Path pathSrc = new Path(inputFile);
+		Path pathDest = new Path(config.getString("processed-file-location"));
+		String[] split = fileName.split("\\.");
+		String finalName = split[0].concat("_").concat(String.valueOf(System.currentTimeMillis())).concat(".").concat(split[1]);
 
-		fileSystem.copyToLocalFile(pathSrc, pathDest);
+		
+		
+		 String movedFile = Paths.get(pathDest.toString(), finalName).toString();
+		 Path dstPath = new Path(movedFile);
+		logger.debug(inputFile +" will be moved to    :::: {} ", movedFile);
+		fileSystem.copyToLocalFile(pathSrc,dstPath );
 
 		sparkContext.close(); // can not call this when deployed in cluster
 	    }
